@@ -20,7 +20,10 @@ jobs:
           sudo chmod 0755 /usr/local/cloudflared
           sudo cp -r . /usr/local/cloudflared/
           sudo rm -rf /usr/local/cloudflared/.github
+      - name: 'ls'
+        run: |
+          ls
       - name: 'Run Ansible Playbook'
         run: |
-          ansible-playbook ./ansible/playbooks/deploy-cloudflared.yml -i /usr/local/ansible/inventory/hosts.ini \
+          ansible-playbook ansible/playbooks/deploy-cloudflared.yml -i /usr/local/ansible/inventory/hosts.ini \
             --extra-vars "CF_TUNNEL_TOKEN_TRUJILLO=${{ secrets.CF_TUNNEL_TOKEN_TRUJILLO }}"
