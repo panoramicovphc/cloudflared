@@ -1,104 +1,105 @@
 ---
-- name: 'Propagate Cloudflared project to remote nodes'
-  hosts: 'all'
+- name: "Propagate Cloudflared project to remote nodes"
+  hosts: "all"
   become: true
   vars:
-    cloudflared_dir: '/usr/local/cloudflared'
+    cloudflared_dir: "/usr/local/cloudflared"
 
   tasks:
-    - name: 'Create a timestamp variable'
+    - name: "Create a timestamp variable"
       set_fact:
         timestamp: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
 
-    - name: 'Create backup directory if it doesn''t exist'
+    - name: "Create backup directory if it doesn't exist"
       file:
-        path: '{{ cloudflared_dir }}_backup'
-        state: 'directory'
-        owner: 'root'
-        group: 'root'
-        mode: '0755'
+        path: "{{ cloudflared_dir }}_backup"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0755"
 
-    - name: 'Create a zip backup of the Cloudflared project'
+    - name: "Create a zip backup of the Cloudflared project"
       archive:
-        path: '{{ cloudflared_dir }}'
+        path: "{{ cloudflared_dir }}"
         dest: "{{ cloudflared_dir }}_backup/cloudflared_backup_{{ timestamp }}.zip"
-        format: 'zip'
+        format: "zip"
 
-- name: 'Clean and propagate Cloudflared project to remote nodes'
-  hosts: 'all'
+- name: "Clean and propagate Cloudflared project to remote nodes"
+  hosts: "all"
   become: true
   vars:
-    cloudflared_dir: '/usr/local/cloudflared'
+    cloudflared_dir: "/usr/local/cloudflared"
 
   tasks:
-    - name: 'Ensure destination directory exists'
+    - name: "Ensure destination directory exists"
       file:
-        path: '{{ cloudflared_dir }}'
-        state: 'directory'
-        owner: 'root'
-        group: 'root'
-        mode: '0755'
+        path: "{{ cloudflared_dir }}"
+        state: "directory"
+        owner: "root"
+        group: "root"
+        mode: "0755"
 
-    - name: 'Clean the destination directory'
-      command: 'rm -rf {{ cloudflared_dir }}/* {{ cloudflared_dir }}/.[!.]* {{ cloudflared_dir }}/..?*'
+    - name: "Clean the destination directory"
+      command: |
+        rm -rf {{ cloudflared_dir }}/* {{ cloudflared_dir }}/.[!.]* {{ cloudflared_dir }}/..?*
       ignore_errors: true
 
-    - name: 'Copy Cloudflared project to remote nodes'
+    - name: "Copy Cloudflared project to remote nodes"
       synchronize:
-        src: '{{ cloudflared_dir }}'
-        dest: '{{ cloudflared_dir }}'
+        src: "{{ cloudflared_dir }}"
+        dest: "{{ cloudflared_dir }}"
         delete: true
         recursive: true
         rsync_opts:
-          - '--chmod=D0755,F0644'
+          - "--chmod=D0755,F0644"
 
-    - name: 'Set permissions on Cloudflared project files'
+    - name: "Set permissions on Cloudflared project files"
       file:
-        path: '{{ cloudflared_dir }}'
-        state: 'directory'
+        path: "{{ cloudflared_dir }}"
+        state: "directory"
         recurse: true
-        owner: 'root'
-        group: 'root'
-        mode: '0755'
+        owner: "root"
+        group: "root"
+        mode: "0755"
 
-- name: 'Deploy Cloudflared Docker Compose'
-  hosts: 'all'
+- name: "Deploy Cloudflared Docker Compose"
+  hosts: "all"
   become: true
   vars:
-    cloudflared_dir: '/usr/local/cloudflared'
+    cloudflared_dir: "/usr/local/cloudflared"
 
   tasks:
-    - name: 'Initialize Terraform'
-      command: 'terraform init'
+    - name: "Initialize Terraform"
+      command: "terraform init"
       args:
-        chdir: '{{ cloudflared_dir }}/terraform'
+        chdir: "{{ cloudflared_dir }}/terraform"
 
-    - name: 'Plan Terraform'
-      command: 'terraform plan'
+    - name: "Plan Terraform"
+      command: "terraform plan"
       args:
-        chdir: '{{ cloudflared_dir }}/terraform'
+        chdir: "{{ cloudflared_dir }}/terraform"
 
-    - name: 'Apply Terraform'
-      command: 'terraform apply -auto-approve'
+    - name: "Apply Terraform"
+      command: "terraform apply -auto-approve"
       args:
-        chdir: '{{ cloudflared_dir }}/terraform'
+        chdir: "{{ cloudflared_dir }}/terraform"
 
-    - name: 'Extract hostname segment'
+    - name: "Extract hostname segment"
       set_fact:
         hostname_segment: |
           {{ inventory_hostname.split('.')[0] | upper }}
 
-    - name: 'Generate .env file with token'
+    - name: "Generate .env file with token"
       copy:
-        dest: '{{ cloudflared_dir }}/.env'
+        dest: "{{ cloudflared_dir }}/.env"
         content: |
           TUNNEL_TOKEN={{ lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) | default('') }}
       when: |
         lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) is defined
 
-    - name: 'Run Docker Compose'
-      shell: 'docker-compose up -d'
+    - name: "Run Docker Compose"
+      shell: "docker-compose up -d"
       args:
-        chdir: '{{ cloudflared_dir }}'
+        chdir: "{{ cloudflared_dir }}"
       when: |
         lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) is defined

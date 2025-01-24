@@ -1,20 +1,20 @@
-name: 'mkhouse-cloudflared'
+name: "mkhouse-cloudflared"
 
 services:
 
   mkhouse-cloudflared:
-    image: 'cloudflare/cloudflared:latest'
-    container_name: 'mkhouse-cloudflared'
-    hostname: 'mkhouse-cloudflared'
-    command: 'tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}'
-    restart: 'unless-stopped'
+    image: "cloudflare/cloudflared:latest"
+    container_name: "mkhouse-cloudflared"
+    hostname: "mkhouse-cloudflared"
+    command: "tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}"
+    restart: "unless-stopped"
     dns:
-      - '1.1.1.1'
-      - '4.4.4.4'
+      - "1.1.1.1"
+      - "4.4.4.4"
     environment:
-      PUID: '1000'
-      PGID: '1000'
-      TZ: 'America/Sao_Paulo'
+      PUID: "1000"
+      PGID: "1000"
+      TZ: "America/Sao_Paulo"
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"

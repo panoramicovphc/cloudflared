@@ -1,26 +1,26 @@
-name: 'Deploy Cloudflared'
-run-name: '${{ github.event_name }} by ${{ github.actor }} #${{ github.run_number }}.${{ github.run_attempt }}'
+name: "Deploy Cloudflared"
+run-name: "${{ github.event_name }} by ${{ github.actor }} #${{ github.run_number }}.${{ github.run_attempt }}"
 
 on:
   push:
     branches:
-      - 'main'
+      - "main"
 
 jobs:
   deploy:
     runs-on:
-      - 'self-hosted'
+      - "self-hosted"
     steps:
-      - name: 'Checkout repository'
-        uses: 'actions/checkout@v2'
-      - name: 'Public cloudflared Docker Compose'
+      - name: "Checkout repository"
+        uses: "actions/checkout@v2"
+      - name: "Public cloudflared Docker Compose"
         run: |
           sudo rm -rf /usr/local/cloudflared/*
           sudo mkdir -p /usr/local/cloudflared
           sudo chmod 0755 /usr/local/cloudflared
           sudo cp -r . /usr/local/cloudflared/
           sudo rm -rf /usr/local/cloudflared/.github
-      - name: 'Run Ansible Playbook'
+      - name: "Run Ansible Playbook"
         run: |
           ansible-playbook ./ansible/playbooks/deploy-cloudflared.yml -i /usr/local/ansible/inventory/hosts.ini \
             --extra-vars "CF_TUNNEL_TOKEN_TRUJILLO=${{ secrets.CF_TUNNEL_TOKEN_TRUJILLO }}"
