@@ -89,6 +89,10 @@
         hostname_segment: |
           {{ inventory_hostname.split('.')[0] | upper }}
 
+    - name: 'Debug CF_TUNNEL_TOKEN'
+      debug:
+        msg: "{{ lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) | default('') }}"
+
     - name: "Generate .env file with token"
       copy:
         dest: "{{ cloudflared_dir }}/.env"
