@@ -93,7 +93,7 @@
       copy:
         dest: "{{ cloudflared_dir }}/.env"
         content: |
-          TUNNEL_TOKEN={{ lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) | default('') }}
+          CF_TUNNEL_TOKEN={{ lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) | default('') }}
       when: |
         lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) is defined
 
