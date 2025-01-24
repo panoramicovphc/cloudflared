@@ -41,7 +41,7 @@
 
     - name: Copy Cloudflared project to remote nodes
       synchronize:
-        src: /path/to/local/cloudflared/
+        src: /usr/local/cloudflared/
         dest: /usr/local/cloudflared/
         delete: yes
         recursive: yes
