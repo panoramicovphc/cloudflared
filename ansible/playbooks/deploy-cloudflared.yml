@@ -1,60 +1,64 @@
 ---
-- name: Propagate Cloudflared project to remote nodes
-  hosts: all
+- name: 'Propagate Cloudflared project to remote nodes'
+  hosts: 'all'
   become: true
+  vars:
+    cloudflared_dir: '/usr/local/cloudflared'
 
   tasks:
-    - name: Create a timestamp variable
+    - name: 'Create a timestamp variable'
       set_fact:
         timestamp: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
 
-    - name: Create backup directory if it doesn't exist
+    - name: 'Create backup directory if it doesn''t exist'
       file:
-        path: /usr/local/cloudflared_backup
-        state: directory
-        owner: root
-        group: root
+        path: '{{ cloudflared_dir }}_backup'
+        state: 'directory'
+        owner: 'root'
+        group: 'root'
         mode: '0755'
 
-    - name: Create a zip backup of the Cloudflared project
+    - name: 'Create a zip backup of the Cloudflared project'
       archive:
-        path: /usr/local/cloudflared/
-        dest: "/usr/local/cloudflared_backup/cloudflared_backup_{{ timestamp }}.zip"
-        format: zip
+        path: '{{ cloudflared_dir }}'
+        dest: "{{ cloudflared_dir }}_backup/cloudflared_backup_{{ timestamp }}.zip"
+        format: 'zip'
 
-- name: Clean and propagate Cloudflared project to remote nodes
-  hosts: all
+- name: 'Clean and propagate Cloudflared project to remote nodes'
+  hosts: 'all'
   become: true
+  vars:
+    cloudflared_dir: '/usr/local/cloudflared'
 
   tasks:
-    - name: Ensure destination directory exists
+    - name: 'Ensure destination directory exists'
       file:
-        path: /usr/local/cloudflared/
-        state: directory
-        owner: root
-        group: root
+        path: '{{ cloudflared_dir }}'
+        state: 'directory'
+        owner: 'root'
+        group: 'root'
         mode: '0755'
 
-    - name: Clean the destination directory
-      command: rm -rf /usr/local/cloudflared/* /usr/local/cloudflared/.[!.]* /usr/local/cloudflared/..?*
+    - name: 'Clean the destination directory'
+      command: 'rm -rf {{ cloudflared_dir }}/* {{ cloudflared_dir }}/.[!.]* {{ cloudflared_dir }}/..?*'
       ignore_errors: true
 
-    - name: Copy Cloudflared project to remote nodes
+    - name: 'Copy Cloudflared project to remote nodes'
       synchronize:
-        src: /usr/local/cloudflared/
-        dest: /usr/local/cloudflared/
-        delete: yes
-        recursive: yes
+        src: '{{ cloudflared_dir }}'
+        dest: '{{ cloudflared_dir }}'
+        delete: true
+        recursive: true
         rsync_opts:
-          - "--chmod=D0755,F0644"
+          - '--chmod=D0755,F0644'
 
-    - name: Set permissions on Cloudflared project files
+    - name: 'Set permissions on Cloudflared project files'
       file:
-        path: /usr/local/cloudflared/
-        state: directory
-        recurse: yes
-        owner: root
-        group: root
+        path: '{{ cloudflared_dir }}'
+        state: 'directory'
+        recurse: true
+        owner: 'root'
+        group: 'root'
         mode: '0755'
 
 - name: 'Deploy Cloudflared Docker Compose'
@@ -67,17 +71,17 @@
     - name: 'Initialize Terraform'
       command: 'terraform init'
       args:
-        chdir: './terraform'
+        chdir: '{{ cloudflared_dir }}/terraform'
 
     - name: 'Plan Terraform'
       command: 'terraform plan'
       args:
-        chdir: './terraform'
+        chdir: '{{ cloudflared_dir }}/terraform'
 
     - name: 'Apply Terraform'
       command: 'terraform apply -auto-approve'
       args:
-        chdir: './terraform'
+        chdir: '{{ cloudflared_dir }}/terraform'
 
     - name: 'Extract hostname segment'
       set_fact:
