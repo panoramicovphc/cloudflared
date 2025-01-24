@@ -21,6 +21,14 @@ jobs:
           sudo cp -r . /usr/local/cloudflared/
           sudo rm -rf /usr/local/cloudflared/.github
       - name: "Run Ansible Playbook"
+        env:
+          CF_TUNNEL_TOKEN_TRUJILLO: "${{ secrets.CF_TUNNEL_TOKEN_TRUJILLO }}"
+          CF_TUNNEL_TOKEN_TANKIAN: "${{ secrets.CF_TUNNEL_TOKEN_TANKIAN }}"
+          CF_TUNNEL_TOKEN_CHUCK: "${{ secrets.CF_TUNNEL_TOKEN_CHUCK }}"
+          CF_TUNNEL_TOKEN_DEVBIAN: "${{ secrets.CF_TUNNEL_TOKEN_DEVBIAN }}"
         run: |
           ansible-playbook ./ansible/playbooks/deploy-cloudflared.yml -i /usr/local/ansible/inventory/hosts.ini \
-            --extra-vars "CF_TUNNEL_TOKEN_TRUJILLO=${{ secrets.CF_TUNNEL_TOKEN_TRUJILLO }}"
+            --extra-vars "CF_TUNNEL_TOKEN_TRUJILLO=${CF_TUNNEL_TOKEN_TRUJILLO}" \
+            --extra-vars "CF_TUNNEL_TOKEN_TANKIAN=${CF_TUNNEL_TOKEN_TANKIAN}" \
+            --extra-vars "CF_TUNNEL_TOKEN_CHUCK=${CF_TUNNEL_TOKEN_CHUCK}" \
+            --extra-vars "CF_TUNNEL_TOKEN_DEVBIAN=${CF_TUNNEL_TOKEN_DEVBIAN}"
