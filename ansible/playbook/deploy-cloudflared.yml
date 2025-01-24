@@ -1,4 +1,62 @@
 ---
+- name: Propagate Cloudflared project to remote nodes
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Create a timestamp variable
+      set_fact:
+        timestamp: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+
+    - name: Create backup directory if it doesn't exist
+      file:
+        path: /usr/local/cloudflared_backup
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create a zip backup of the Cloudflared project
+      archive:
+        path: /usr/local/cloudflared/
+        dest: "/usr/local/cloudflared_backup/cloudflared_backup_{{ timestamp }}.zip"
+        format: zip
+
+- name: Clean and propagate Cloudflared project to remote nodes
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Ensure destination directory exists
+      file:
+        path: /usr/local/cloudflared/
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Clean the destination directory
+      command: rm -rf /usr/local/cloudflared/* /usr/local/cloudflared/.[!.]* /usr/local/cloudflared/..?*
+      ignore_errors: true
+
+    - name: Copy Cloudflared project to remote nodes
+      synchronize:
+        src: /path/to/local/cloudflared/
+        dest: /usr/local/cloudflared/
+        delete: yes
+        recursive: yes
+        rsync_opts:
+          - "--chmod=D0755,F0644"
+
+    - name: Set permissions on Cloudflared project files
+      file:
+        path: /usr/local/cloudflared/
+        state: directory
+        recurse: yes
+        owner: root
+        group: root
+        mode: '0755'
+
 - name: 'Deploy Cloudflared Docker Compose'
   hosts: 'all'
   become: true
@@ -6,17 +64,20 @@
     cloudflared_dir: '/usr/local/cloudflared'
 
   tasks:
-    - name: 'Ensure cloudflared directory exists'
-      file:
-        path: '{{ cloudflared_dir }}'
-        state: directory
-        mode: '0755'
+    - name: 'Initialize Terraform'
+      command: 'terraform init'
+      args:
+        chdir: './terraform'
 
-    - name: 'Copy docker-compose.yml to cloudflared directory'
-      copy:
-        src: '{{ cloudflared_dir }}/docker-compose.yml'
-        dest: '{{ cloudflared_dir }}/docker-compose.yml'
-        mode: '0644'
+    - name: 'Plan Terraform'
+      command: 'terraform plan'
+      args:
+        chdir: './terraform'
+
+    - name: 'Apply Terraform'
+      command: 'terraform apply -auto-approve'
+      args:
+        chdir: './terraform'
 
     - name: 'Extract hostname segment'
       set_fact:

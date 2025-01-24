@@ -13,22 +13,14 @@ jobs:
     steps:
       - name: 'Checkout repository'
         uses: 'actions/checkout@v2'
-      
-      - name: 'Initialize Terraform'
-        working-directory: './terraform'
-        run: 'terraform init'
-      - name: 'Plan Terraform'
-        working-directory: './terraform'
-        run: 'terraform plan'
-      - name: 'Apply Terraform'
-        working-directory: './terraform'
-        run: 'terraform apply -auto-approve'
       - name: 'Public cloudflared Docker Compose'
         run: |
+          sudo rm -rf /usr/local/cloudflared/*
           sudo mkdir -p /usr/local/cloudflared
           sudo chmod 0755 /usr/local/cloudflared
-          sudo cp ./docker/docker-compose.yml /usr/local/cloudflared
+          sudo cp -r . /usr/local/cloudflared/
+          sudo rm -rf /usr/local/cloudflared/.github
       - name: 'Run Ansible Playbook'
         run: |
-          ansible-playbook deploy-cloudflared.yml -i /usr/local/ansible/inventory/hosts.ini \
+          ansible-playbook ./ansible/playbooks/deploy-cloudflared.yml -i /usr/local/ansible/inventory/hosts.ini \
             --extra-vars "CF_TUNNEL_TOKEN_TRUJILLO=${{ secrets.CF_TUNNEL_TOKEN_TRUJILLO }}"
