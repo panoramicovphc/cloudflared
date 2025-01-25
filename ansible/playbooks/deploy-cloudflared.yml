@@ -84,10 +84,6 @@
       args:
         chdir: "{{ CLOUDFLARED_DIR }}/terraform"
 
-    - name: "Debug CF_TUNNEL_TOKEN"
-      debug:
-        msg: "CF_TUNNEL_TOKEN = {{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN | default('') }}"
-
     - name: "Verify CF_TUNNEL_TOKEN is defined for current host"
       assert:
         that:
@@ -95,20 +91,15 @@
         fail_msg: "Variable CF_TUNNEL_TOKEN is not defined for host {{ inventory_hostname }}"
         success_msg: "Variable CF_TUNNEL_TOKEN is defined for host {{ inventory_hostname }}"
 
-    - name: 'Debug CF_TUNNEL_TOKEN'
-      debug:
-        msg: "{{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN | default('') }}"
-
     - name: "Generate .env file with token"
       copy:
         dest: "{{ CLOUDFLARED_DIR }}/.env"
         content: |
           CF_TUNNEL_TOKEN={{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN | default('') }}
-      when: hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined
+      when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
 
     - name: "Run Docker Compose"
       shell: "docker-compose up -d"
       args:
         chdir: "{{ CLOUDFLARED_DIR }}"
-      when: |
-        lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) is defined
+      when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
