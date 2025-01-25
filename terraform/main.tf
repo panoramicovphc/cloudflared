@@ -1,22 +1,3 @@
-resource "null_resource" "ensure_docker" {
-  provisioner "local-exec" {
-    command = <<EOT
-      if command -v yum &> /dev/null; then
-        sudo yum install -y yum-utils
-        sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-        sudo yum install -y docker-ce docker-ce-cli containerd.io
-      elif command -v apt-get &> /dev/null; then
-        sudo apt-get update
-        sudo apt-get install -y docker.io
-      elif command -v zypper &> /dev/null; then
-        sudo zypper install -y docker
-      fi
-      sudo systemctl start docker
-      sudo systemctl enable docker
-    EOT
-  }
-}
-
 terraform {
   required_providers {
     docker = {

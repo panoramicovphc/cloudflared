@@ -62,6 +62,54 @@
         group: "root"
         mode: "0755"
 
+- name: "Install Docker"
+  hosts: "all"
+  become: true
+  tasks:
+    - name: "Update package list"
+      apt:
+        update_cache: true
+    
+    - name: "Install required packages"
+      apt:
+        name:
+          - "apt-transport-https"
+          - "ca-certificates"
+          - "curl"
+          - "software-properties-common"
+        state: "present"
+    
+    - name: "Add Docker's official GPG key"
+      apt_key:
+        url: "https://download.docker.com/linux/ubuntu/gpg"
+        state: "present"
+    
+    - name: "Add Docker repository"
+      apt_repository:
+        repo: "deb https://download.docker.com/linux/ubuntu focal stable"
+        state: "present"
+    
+    - name: "Update package list after adding Docker repository"
+      apt:
+        update_cache: true
+    
+    - name: "Install Docker"
+      apt:
+        name: "docker-ce"
+        state: "present"
+    
+    - name: "Ensure Docker service is running and enabled"
+      service:
+        name: "docker"
+        state: "started"
+        enabled: "true"
+
+    - name: "Add current user to docker group"
+      user:
+        name: "{{ ansible_user }}"
+        groups: "docker"
+        append: "true"
+
 - name: "Deploy Cloudflared Docker Compose"
   hosts: "all"
   become: true
@@ -69,6 +117,12 @@
     CLOUDFLARED_DIR: "/usr/local/cloudflared"
 
   tasks:
+    - name: "Ensure Docker is running"
+      service:
+        name: "docker"
+        state: "started"
+        enabled: "yes"
+
     - name: "Initialize Terraform"
       command: "terraform init"
       args:
