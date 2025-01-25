@@ -11,7 +11,7 @@ env:
   CLOUDFLARED_PROJECT: "${{ vars.CLOUDFLARED_PROJECT }}"
 
 jobs:
-  deploy:
+  deploy-cloudflared:
     runs-on:
       - "self-hosted"
     steps:

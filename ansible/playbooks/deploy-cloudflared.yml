@@ -99,6 +99,12 @@
       when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
 
     - name: "Run Docker Compose"
+      shell: "ls -la"
+      args:
+        chdir: "{{ CLOUDFLARED_DIR }}"
+      when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
+
+    - name: "Run Docker Compose"
       shell: "docker-compose up -d"
       args:
         chdir: "{{ CLOUDFLARED_DIR }}"
