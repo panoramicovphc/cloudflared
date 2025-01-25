@@ -93,7 +93,11 @@
         hostname_segment: |
           {{ inventory_hostname.split('.')[0] | upper }}
 
-    - name: 'Verify CF_TUNNEL_TOKEN is defined for each host'
+    - name: "Debug CF_TUNNEL_TOKEN_<hostname_segment>"
+      debug:
+        msg: "CF_TUNNEL_TOKEN_{{ hostname_segment }} = {{ lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) | default('') }}"
+
+    - name: "Verify CF_TUNNEL_TOKEN is defined for current host"
       assert:
         that:
           - "lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) is defined"
