@@ -12,7 +12,7 @@ provider "docker" {
 }
 
 data "external" "check_network" {
-  program = ["bash", "${path.module}/check_network.sh", "mkhouse-vpc-net"]
+  program = ["bash", "${path.module}/check-network.sh", "mkhouse-vpc-net"]
 }
 
 resource "docker_network" "mkhouse_vpc_net" {
