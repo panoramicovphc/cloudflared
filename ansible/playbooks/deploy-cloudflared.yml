@@ -155,5 +155,5 @@
     - name: "Run Docker Compose"
       shell: "docker compose up -d"
       args:
-        chdir: "{{ CLOUDFLARED_DIR }}"
+        chdir: "{{ CLOUDFLARED_DIR }}/docker"
       when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
