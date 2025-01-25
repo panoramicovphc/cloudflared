@@ -66,10 +66,6 @@
   hosts: "all"
   become: true
   vars:
-    CF_TUNNEL_TOKEN_TRUJILLO: "{{ CF_TUNNEL_TOKEN_TRUJILLO }}"
-    CF_TUNNEL_TOKEN_TANKIAN: "{{ CF_TUNNEL_TOKEN_TANKIAN }}"
-    CF_TUNNEL_TOKEN_CHUCK: "{{ CF_TUNNEL_TOKEN_CHUCK }}"
-    CF_TUNNEL_TOKEN_DEVBIAN: "{{ CF_TUNNEL_TOKEN_DEVBIAN }}"
     CLOUDFLARED_DIR: "/usr/local/cloudflared"
 
   tasks:
@@ -88,33 +84,27 @@
       args:
         chdir: "{{ CLOUDFLARED_DIR }}/terraform"
 
-    - name: "Extract hostname segment"
-      set_fact:
-        hostname_segment: |
-          {{ inventory_hostname.split('.')[0] | upper }}
-
-    - name: "Debug CF_TUNNEL_TOKEN_<hostname_segment>"
+    - name: "Debug CF_TUNNEL_TOKEN"
       debug:
-        msg: "CF_TUNNEL_TOKEN_{{ hostname_segment }} = {{ lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) | default('') }}"
+        msg: "CF_TUNNEL_TOKEN = {{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN | default('') }}"
 
     - name: "Verify CF_TUNNEL_TOKEN is defined for current host"
       assert:
         that:
-          - "lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) is defined"
-        fail_msg: "Variable CF_TUNNEL_TOKEN_{{ hostname_segment }} is not defined"
-        success_msg: "Variable CF_TUNNEL_TOKEN_{{ hostname_segment }} is defined"
+          - "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
+        fail_msg: "Variable CF_TUNNEL_TOKEN is not defined for host {{ inventory_hostname }}"
+        success_msg: "Variable CF_TUNNEL_TOKEN is defined for host {{ inventory_hostname }}"
 
     - name: 'Debug CF_TUNNEL_TOKEN'
       debug:
-        msg: "{{ lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) | default('') }}"
+        msg: "{{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN | default('') }}"
 
     - name: "Generate .env file with token"
       copy:
         dest: "{{ CLOUDFLARED_DIR }}/.env"
         content: |
-          CF_TUNNEL_TOKEN={{ lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) | default('') }}
-      when: |
-        lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) is defined
+          CF_TUNNEL_TOKEN={{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN | default('') }}
+      when: hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined
 
     - name: "Run Docker Compose"
       shell: "docker-compose up -d"

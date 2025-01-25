@@ -6,6 +6,10 @@ on:
     branches:
       - "main"
 
+env:
+  ANSIBLE_PROJECT: "${{ vars.ANSIBLE_PROJECT }}"
+  CLOUDFLARED_PROJECT: "${{ vars.CLOUDFLARED_PROJECT }}"
+
 jobs:
   deploy:
     runs-on:
@@ -15,20 +19,11 @@ jobs:
         uses: "actions/checkout@v2"
       - name: "Public cloudflared Docker Compose"
         run: |
-          sudo rm -rf /usr/local/cloudflared/*
-          sudo mkdir -p /usr/local/cloudflared
-          sudo chmod 0755 /usr/local/cloudflared
-          sudo cp -r . /usr/local/cloudflared/
-          sudo rm -rf /usr/local/cloudflared/.github
+          sudo rm -rf ${CLOUDFLARED_PROJECT}/*
+          sudo mkdir -p ${CLOUDFLARED_PROJECT}
+          sudo chmod 0755 ${CLOUDFLARED_PROJECT}
+          sudo cp -r . ${CLOUDFLARED_PROJECT}/
+          sudo rm -rf ${CLOUDFLARED_PROJECT}/.github
       - name: "Run Ansible Playbook"
-        env:
-          CF_TUNNEL_TOKEN_TRUJILLO: "${{ secrets.CF_TUNNEL_TOKEN_TRUJILLO }}"
-          CF_TUNNEL_TOKEN_TANKIAN: "${{ secrets.CF_TUNNEL_TOKEN_TANKIAN }}"
-          CF_TUNNEL_TOKEN_CHUCK: "${{ secrets.CF_TUNNEL_TOKEN_CHUCK }}"
-          CF_TUNNEL_TOKEN_DEVBIAN: "${{ secrets.CF_TUNNEL_TOKEN_DEVBIAN }}"
         run: |
-          ansible-playbook ./ansible/playbooks/deploy-cloudflared.yml -i /usr/local/ansible/inventory/hosts.ini \
-            --extra-vars "CF_TUNNEL_TOKEN_TRUJILLO=${CF_TUNNEL_TOKEN_TRUJILLO}" \
-            --extra-vars "CF_TUNNEL_TOKEN_TANKIAN=${CF_TUNNEL_TOKEN_TANKIAN}" \
-            --extra-vars "CF_TUNNEL_TOKEN_CHUCK=${CF_TUNNEL_TOKEN_CHUCK}" \
-            --extra-vars "CF_TUNNEL_TOKEN_DEVBIAN=${CF_TUNNEL_TOKEN_DEVBIAN}"
+          ansible-playbook ./ansible/playbooks/deploy-cloudflared.yml -i ${ANSIBLE_PROJECT}/inventory/hosts.ini
