@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    docker = {
-      source  = "kreuzwerker/docker"
-      version = "~> 2.0"
-    }
-  }
-}
-
 resource "null_resource" "ensure_docker" {
   provisioner "local-exec" {
     command = <<EOT
@@ -17,10 +8,21 @@ resource "null_resource" "ensure_docker" {
       elif command -v apt-get &> /dev/null; then
         sudo apt-get update
         sudo apt-get install -y docker.io
+      elif command -v zypper &> /dev/null; then
+        sudo zypper install -y docker
       fi
       sudo systemctl start docker
       sudo systemctl enable docker
     EOT
+  }
+}
+
+terraform {
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 2.0"
+    }
   }
 }
 
