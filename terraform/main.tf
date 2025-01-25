@@ -11,17 +11,12 @@ provider "docker" {
   host = "unix:///var/run/docker.sock"
 }
 
-data "external" "check_network" {
-  program = ["bash", "${path.module}/check-network.sh", "mkhouse-vpc-net"]
-}
-
-resource "docker_network" "mkhouse_vpc_net" {
-  count  = data.external.check_network.result.exists == "false" ? 1 : 0
-  name   = "mkhouse-vpc-net"
-  driver = "bridge"
-  check_duplicate = true
+resource "docker_network" "private_network" {
+  name     = "mkhouse-vpc-net"
+  driver   = "bridge"
+  internal = false
 }
 
 output "network_name" {
-  value = docker_network.mkhouse_vpc_net[0].name
+  value = docker_network.private_network.name
 }
