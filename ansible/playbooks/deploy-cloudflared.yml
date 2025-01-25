@@ -69,12 +69,6 @@
     CLOUDFLARED_DIR: "/usr/local/cloudflared"
 
   tasks:
-    - name: Ensure Docker is running
-      service:
-        name: docker
-        state: started
-        enabled: yes
-
     - name: "Initialize Terraform"
       command: "terraform init"
       args:
