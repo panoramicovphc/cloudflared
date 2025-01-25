@@ -2,6 +2,7 @@
 - name: "Propagate Cloudflared project to remote nodes"
   hosts: "all"
   become: true
+  any_errors_fatal: true
   vars:
     CLOUDFLARED_DIR: "/usr/local/cloudflared"
 
@@ -27,6 +28,7 @@
 - name: "Clean and propagate Cloudflared project to remote nodes"
   hosts: "all"
   become: true
+  any_errors_fatal: true
   vars:
     CLOUDFLARED_DIR: "/usr/local/cloudflared"
 
@@ -65,6 +67,7 @@
 - name: "Install Docker"
   hosts: "all"
   become: true
+  any_errors_fatal: true
   tasks:
     - name: "Update package list"
       apt:
@@ -113,6 +116,7 @@
 - name: "Deploy Cloudflared Docker Compose"
   hosts: "all"
   become: true
+  any_errors_fatal: true
   vars:
     CLOUDFLARED_DIR: "/usr/local/cloudflared"
 
