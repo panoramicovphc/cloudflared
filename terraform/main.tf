@@ -15,6 +15,10 @@ resource "docker_network" "mkhouse_vpc_net" {
   name   = "mkhouse-vpc-net"
   driver = "bridge"
   check_duplicate = true
+
+  lifecycle {
+    ignore_changes = [name]
+  }
 }
 
 output "network_name" {
