@@ -11,16 +11,18 @@ provider "docker" {
   host = "unix:///var/run/docker.sock"
 }
 
-resource "docker_network" "private_network" {
-  name     = "mkhouse-vpc-net"
-  driver   = "bridge"
-  internal = false
+data "external" "check_network" {
+  program = ["bash", "-c", "docker network inspect mkhouse-vpc-net >/dev/null 2>&1 && echo '{\"exists\": true}' || echo '{\"exists\": false}'"]
+}
 
-  lifecycle {
-    ignore_changes = [name]
+resource "null_resource" "create_network" {
+  count = data.external.check_network.result.exists == "true" ? 0 : 1
+
+  provisioner "local-exec" {
+    command = "docker network create --driver bridge mkhouse-vpc-net"
   }
 }
 
 output "network_name" {
-  value = docker_network.private_network.name
+  value = "mkhouse-vpc-net"
 }
