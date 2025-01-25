@@ -3,7 +3,7 @@
   hosts: "all"
   become: true
   vars:
-    cloudflared_dir: "/usr/local/cloudflared"
+    CLOUDFLARED_DIR: "/usr/local/cloudflared"
 
   tasks:
     - name: "Create a timestamp variable"
@@ -12,7 +12,7 @@
 
     - name: "Create backup directory if it doesn't exist"
       file:
-        path: "{{ cloudflared_dir }}_backup"
+        path: "{{ CLOUDFLARED_DIR }}_backup"
         state: "directory"
         owner: "root"
         group: "root"
@@ -20,20 +20,20 @@
 
     - name: "Create a zip backup of the Cloudflared project"
       archive:
-        path: "{{ cloudflared_dir }}"
-        dest: "{{ cloudflared_dir }}_backup/cloudflared_backup_{{ timestamp }}.zip"
+        path: "{{ CLOUDFLARED_DIR }}"
+        dest: "{{ CLOUDFLARED_DIR }}_backup/cloudflared_backup_{{ timestamp }}.zip"
         format: "zip"
 
 - name: "Clean and propagate Cloudflared project to remote nodes"
   hosts: "all"
   become: true
   vars:
-    cloudflared_dir: "/usr/local/cloudflared"
+    CLOUDFLARED_DIR: "/usr/local/cloudflared"
 
   tasks:
     - name: "Ensure destination directory exists"
       file:
-        path: "{{ cloudflared_dir }}"
+        path: "{{ CLOUDFLARED_DIR }}"
         state: "directory"
         owner: "root"
         group: "root"
@@ -41,13 +41,13 @@
 
     - name: "Clean the destination directory"
       command: |
-        rm -rf {{ cloudflared_dir }}/* {{ cloudflared_dir }}/.[!.]* {{ cloudflared_dir }}/..?*
+        rm -rf {{ CLOUDFLARED_DIR }}/* {{ CLOUDFLARED_DIR }}/.[!.]* {{ CLOUDFLARED_DIR }}/..?*
       ignore_errors: true
 
     - name: "Copy Cloudflared project to remote nodes"
       synchronize:
-        src: "{{ cloudflared_dir }}"
-        dest: "{{ cloudflared_dir }}"
+        src: "{{ CLOUDFLARED_DIR }}"
+        dest: "{{ CLOUDFLARED_DIR }}"
         delete: true
         recursive: true
         rsync_opts:
@@ -55,7 +55,7 @@
 
     - name: "Set permissions on Cloudflared project files"
       file:
-        path: "{{ cloudflared_dir }}"
+        path: "{{ CLOUDFLARED_DIR }}"
         state: "directory"
         recurse: true
         owner: "root"
@@ -66,28 +66,39 @@
   hosts: "all"
   become: true
   vars:
-    cloudflared_dir: "/usr/local/cloudflared"
+    CF_TUNNEL_TOKEN_TRUJILLO: "{{ CF_TUNNEL_TOKEN_TRUJILLO }}"
+    CF_TUNNEL_TOKEN_TANKIAN: "{{ CF_TUNNEL_TOKEN_TANKIAN }}"
+    CF_TUNNEL_TOKEN_CHUCK: "{{ CF_TUNNEL_TOKEN_CHUCK }}"
+    CF_TUNNEL_TOKEN_DEVBIAN: "{{ CF_TUNNEL_TOKEN_DEVBIAN }}"
+    CLOUDFLARED_DIR: "/usr/local/cloudflared"
 
   tasks:
     - name: "Initialize Terraform"
       command: "terraform init"
       args:
-        chdir: "{{ cloudflared_dir }}/terraform"
+        chdir: "{{ CLOUDFLARED_DIR }}/terraform"
 
     - name: "Plan Terraform"
       command: "terraform plan"
       args:
-        chdir: "{{ cloudflared_dir }}/terraform"
+        chdir: "{{ CLOUDFLARED_DIR }}/terraform"
 
     - name: "Apply Terraform"
       command: "terraform apply -auto-approve"
       args:
-        chdir: "{{ cloudflared_dir }}/terraform"
+        chdir: "{{ CLOUDFLARED_DIR }}/terraform"
 
     - name: "Extract hostname segment"
       set_fact:
         hostname_segment: |
           {{ inventory_hostname.split('.')[0] | upper }}
+
+    - name: 'Verify CF_TUNNEL_TOKEN is defined for each host'
+      assert:
+        that:
+          - "lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) is defined"
+        fail_msg: "Variable CF_TUNNEL_TOKEN_{{ hostname_segment }} is not defined"
+        success_msg: "Variable CF_TUNNEL_TOKEN_{{ hostname_segment }} is defined"
 
     - name: 'Debug CF_TUNNEL_TOKEN'
       debug:
@@ -95,7 +106,7 @@
 
     - name: "Generate .env file with token"
       copy:
-        dest: "{{ cloudflared_dir }}/.env"
+        dest: "{{ CLOUDFLARED_DIR }}/.env"
         content: |
           CF_TUNNEL_TOKEN={{ lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) | default('') }}
       when: |
@@ -104,6 +115,6 @@
     - name: "Run Docker Compose"
       shell: "docker-compose up -d"
       args:
-        chdir: "{{ cloudflared_dir }}"
+        chdir: "{{ CLOUDFLARED_DIR }}"
       when: |
         lookup('vars', 'CF_TUNNEL_TOKEN_' + hostname_segment) is defined
