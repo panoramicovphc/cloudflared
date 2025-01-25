@@ -15,6 +15,10 @@ resource "docker_network" "private_network" {
   name     = "mkhouse-vpc-net"
   driver   = "bridge"
   internal = false
+
+  lifecycle {
+    ignore_changes = [name]
+  }
 }
 
 output "network_name" {
