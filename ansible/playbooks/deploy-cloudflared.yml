@@ -124,17 +124,17 @@
         enabled: "yes"
 
     - name: "Initialize Terraform"
-      command: "terraform init"
+      command: "sudo terraform init"
       args:
         chdir: "{{ CLOUDFLARED_DIR }}/terraform"
 
     - name: "Plan Terraform"
-      command: "terraform plan"
+      command: "sudo terraform plan"
       args:
         chdir: "{{ CLOUDFLARED_DIR }}/terraform"
 
     - name: "Apply Terraform"
-      command: "terraform apply -auto-approve"
+      command: "sudo terraform apply -auto-approve"
       args:
         chdir: "{{ CLOUDFLARED_DIR }}/terraform"
 
@@ -157,3 +157,5 @@
       args:
         chdir: "{{ CLOUDFLARED_DIR }}/docker"
       when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
+      environment:
+        CF_TUNNEL_TOKEN: "{{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN }}"
