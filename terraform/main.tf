@@ -14,6 +14,7 @@ provider "docker" {
 resource "docker_network" "mkhouse_vpc_net" {
   name   = "mkhouse-vpc-net"
   driver = "bridge"
+  check_duplicate = true
 }
 
 output "network_name" {
