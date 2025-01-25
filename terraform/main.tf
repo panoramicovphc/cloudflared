@@ -12,7 +12,7 @@ provider "docker" {
 }
 
 data "external" "check_network" {
-  program = ["bash", "-c", "docker network inspect mkhouse-vpc-net >/dev/null 2>&1 && echo '{\"exists\": true}' || echo '{\"exists\": false}'"]
+  program = ["bash", "-c", "docker network inspect mkhouse-vpc-net >/dev/null 2>&1 && echo '{\"exists\": \"true\"}' || echo '{\"exists\": \"false\"}'"]
 }
 
 resource "null_resource" "create_network" {
