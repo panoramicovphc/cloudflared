@@ -5,7 +5,7 @@ variable "docker_host" {
 }
 
 variable "vpc_network_name" {
-  description = "The name of the Docker network"
+  description = "The VPC Docker network"
   type        = string
   default     = "mkhouse-vpc-net"
 }
