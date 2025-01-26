@@ -4,7 +4,7 @@ variable "docker_host" {
   default     = "unix:///var/run/docker.sock"
 }
 
-variable "network_name" {
+variable "vpc_network_name" {
   description = "The name of the Docker network"
   type        = string
   default     = "mkhouse-vpc-net"
