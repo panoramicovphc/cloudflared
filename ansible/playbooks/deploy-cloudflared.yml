@@ -69,9 +69,15 @@
   become: true
   any_errors_fatal: true
   tasks:
+    - name: "Check if Docker is already installed"
+      command: "docker --version"
+      register: docker_installed
+      ignore_errors: true
+
     - name: "Update package list"
       apt:
         update_cache: true
+      when: docker_installed.failed
     
     - name: "Install required packages"
       apt:
@@ -81,37 +87,44 @@
           - "curl"
           - "software-properties-common"
         state: "present"
+      when: docker_installed.failed
     
     - name: "Add Docker's official GPG key"
       apt_key:
         url: "https://download.docker.com/linux/ubuntu/gpg"
         state: "present"
+      when: docker_installed.failed
     
     - name: "Add Docker repository"
       apt_repository:
         repo: "deb https://download.docker.com/linux/ubuntu focal stable"
         state: "present"
+      when: docker_installed.failed
     
     - name: "Update package list after adding Docker repository"
       apt:
         update_cache: true
+      when: docker_installed.failed
     
     - name: "Install Docker"
       apt:
         name: "docker-ce"
         state: "present"
+      when: docker_installed.failed
     
     - name: "Ensure Docker service is running and enabled"
       service:
         name: "docker"
         state: "started"
         enabled: "true"
+      when: docker_installed.failed
 
     - name: "Add current user to docker group"
       user:
         name: "{{ ansible_user }}"
         groups: "docker"
         append: "true"
+      when: docker_installed.failed
 
 - name: "Deploy Cloudflared Docker Compose"
   hosts: "all"
