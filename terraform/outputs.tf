@@ -1,6 +1,6 @@
 output "network_name" {
   description = "The name of the Docker network"
-  value       = docker_network.mkhouse_vpc_net.name
+  value       = var.network_name
 }
 
 output "docker_host" {
