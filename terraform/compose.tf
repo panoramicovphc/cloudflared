@@ -2,7 +2,9 @@ resource "null_resource" "docker_compose_pull" {
   provisioner "local-exec" {
     command = "docker compose -f ${var.docker_compose_file} pull"
   }
-  depends_on = [null_resource.create_vpc_network]
+  depends_on = [
+      null_resource.create_vpc_network
+    ]
 }
 
 resource "null_resource" "docker_compose_up" {
