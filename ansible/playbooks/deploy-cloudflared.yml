@@ -121,11 +121,19 @@
     CLOUDFLARED_DIR: "/usr/local/cloudflared"
 
   tasks:
-    - name: "Ensure Docker is running"
-      service:
-        name: "docker"
-        state: "started"
-        enabled: "yes"
+    - name: "Verify CF_TUNNEL_TOKEN is defined for current host"
+      assert:
+        that:
+          - "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
+        fail_msg: "Variable CF_TUNNEL_TOKEN is not defined for host {{ inventory_hostname }}"
+        success_msg: "Variable CF_TUNNEL_TOKEN is defined for host {{ inventory_hostname }}"
+
+    - name: "Generate .env file with token"
+      copy:
+        dest: "{{ CLOUDFLARED_DIR }}/.env"
+        content: |
+          CF_TUNNEL_TOKEN={{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN | default('') }}
+      when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
 
     - name: "Initialize Terraform"
       command: |
@@ -144,36 +152,3 @@
         sudo terraform apply -auto-approve
       args:
         chdir: "{{ CLOUDFLARED_DIR }}/terraform"
-
-    - name: "Verify CF_TUNNEL_TOKEN is defined for current host"
-      assert:
-        that:
-          - "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
-        fail_msg: "Variable CF_TUNNEL_TOKEN is not defined for host {{ inventory_hostname }}"
-        success_msg: "Variable CF_TUNNEL_TOKEN is defined for host {{ inventory_hostname }}"
-
-    - name: "Generate .env file with token"
-      copy:
-        dest: "{{ CLOUDFLARED_DIR }}/.env"
-        content: |
-          CF_TUNNEL_TOKEN={{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN | default('') }}
-      when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
-
-    - name: "Pull Docker Compose images"
-      shell: |
-        docker compose pull
-      args:
-        chdir: "{{ CLOUDFLARED_DIR }}/docker"
-
-    - name: "Run Docker Compose"
-      shell: |
-        docker compose up -d --force-recreate --remove-orphans --build
-      args:
-        chdir: "{{ CLOUDFLARED_DIR }}/docker"
-      when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
-      environment:
-        CF_TUNNEL_TOKEN: "{{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN }}"
-
-    - name: "Prune Docker images"
-      shell: |
-        docker image prune --force
