@@ -74,12 +74,12 @@
       register: docker_installed
       ignore_errors: true
 
-    - name: "Update package list"
+    - name: "Update package list (Debian/Ubuntu)"
       apt:
         update_cache: true
-      when: docker_installed.failed
-    
-    - name: "Install required packages"
+      when: ansible_os_family == "Debian" and docker_installed.failed
+
+    - name: "Install required packages (Debian/Ubuntu)"
       apt:
         name:
           - "apt-transport-https"
@@ -87,31 +87,53 @@
           - "curl"
           - "software-properties-common"
         state: "present"
-      when: docker_installed.failed
-    
-    - name: "Add Docker's official GPG key"
+      when: ansible_os_family == "Debian" and docker_installed.failed
+
+    - name: "Add Docker's official GPG key (Debian/Ubuntu)"
       apt_key:
-        url: "https://download.docker.com/linux/ubuntu/gpg"
+        url: "https://download.docker.com/linux/{{ 'ubuntu' if ansible_distribution == 'Ubuntu' else 'debian' }}/gpg"
         state: "present"
-      when: docker_installed.failed
-    
-    - name: "Add Docker repository"
+      when: ansible_os_family == "Debian" and docker_installed.failed
+
+    - name: "Add Docker repository (Debian/Ubuntu)"
       apt_repository:
-        repo: "deb https://download.docker.com/linux/ubuntu focal stable"
+        repo: "deb [arch=amd64] https://download.docker.com/linux/{{ 'ubuntu' if ansible_distribution == 'Ubuntu' else 'debian' }} $(lsb_release -cs) stable"
         state: "present"
-      when: docker_installed.failed
-    
-    - name: "Update package list after adding Docker repository"
+      when: ansible_os_family == "Debian" and docker_installed.failed
+
+    - name: "Update package list after adding Docker repository (Debian/Ubuntu)"
       apt:
         update_cache: true
-      when: docker_installed.failed
-    
-    - name: "Install Docker"
+      when: ansible_os_family == "Debian" and docker_installed.failed
+
+    - name: "Install Docker (Debian/Ubuntu)"
       apt:
         name: "docker-ce"
         state: "present"
-      when: docker_installed.failed
-    
+      when: ansible_os_family == "Debian" and docker_installed.failed
+
+    - name: "Update package list (Fedora)"
+      dnf:
+        update_cache: true
+      when: ansible_os_family == "RedHat" and docker_installed.failed
+
+    - name: "Install required packages (Fedora)"
+      dnf:
+        name:
+          - "dnf-plugins-core"
+        state: "present"
+      when: ansible_os_family == "RedHat" and docker_installed.failed
+
+    - name: "Add Docker repository (Fedora)"
+      command: "dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo"
+      when: ansible_os_family == "RedHat" and docker_installed.failed
+
+    - name: "Install Docker (Fedora)"
+      dnf:
+        name: "docker-ce"
+        state: "present"
+      when: ansible_os_family == "RedHat" and docker_installed.failed
+
     - name: "Ensure Docker service is running and enabled"
       service:
         name: "docker"
