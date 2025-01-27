@@ -7,8 +7,8 @@ on:
       - "main"
 
 env:
-  ANSIBLE_PROJECT: "${{ vars.ANSIBLE_PROJECT }}"
-  CLOUDFLARED_PROJECT: "${{ vars.CLOUDFLARED_PROJECT }}"
+  ANSIBLE_PROJECT: ${{ vars.ANSIBLE_PROJECT }}
+  CLOUDFLARED_PROJECT: ${{ vars.CLOUDFLARED_PROJECT }}
 
 jobs:
   deploy-cloudflared:
@@ -26,4 +26,4 @@ jobs:
           sudo cp -r . ${CLOUDFLARED_PROJECT}/
           sudo rm -rf ${CLOUDFLARED_PROJECT}/.github
       - name: "Run Ansible Playbook"
-        run: ansible-playbook ./ansible/playbooks/deploy-cloudflared.yml -i ${ANSIBLE_PROJECT}/inventory/hosts.ini -e CLOUDFLARED_DIR=${{ env.CLOUDFLARED_PROJECT }}
+        run: ansible-playbook ./ansible/playbooks/deploy-cloudflared.yml -i ${ANSIBLE_PROJECT}/inventory/hosts.ini -e CLOUDFLARED_PROJECT=${CLOUDFLARED_PROJECT}
