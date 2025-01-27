@@ -148,15 +148,15 @@
           CF_TUNNEL_TOKEN={{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN | default('') }}
       when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
 
-    - name: "Destroy Terraform"
-      command: |
-        sudo terraform destroy -auto-approve
-      args:
-        chdir: "{{ CLOUDFLARED_DIR }}/terraform"
-
     - name: "Initialize Terraform"
       command: |
         sudo terraform init
+      args:
+        chdir: "{{ CLOUDFLARED_DIR }}/terraform"
+
+    - name: "Destroy Terraform"
+      command: |
+        sudo terraform destroy -auto-approve
       args:
         chdir: "{{ CLOUDFLARED_DIR }}/terraform"
 
