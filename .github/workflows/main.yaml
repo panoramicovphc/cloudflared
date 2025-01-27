@@ -12,6 +12,7 @@ env:
 
 jobs:
   deploy-cloudflared:
+    name: "Deploy Cloudflared"
     runs-on:
       - "self-hosted"
     steps:
