@@ -1,5 +1,5 @@
 ---
-- name: "Propagate Cloudflared project to remote nodes"
+- name: "Publish Cloudflared project to remote nodes"
   hosts: "all"
   become: true
   any_errors_fatal: true
@@ -25,7 +25,7 @@
         dest: "{{ CLOUDFLARED_DIR }}_backup/cloudflared_backup_{{ timestamp }}.zip"
         format: "zip"
 
-- name: "Clean and propagate Cloudflared project to remote nodes"
+- name: "Clean and publish Cloudflared project to remote nodes"
   hosts: "all"
   become: true
   any_errors_fatal: true
@@ -126,7 +126,7 @@
         append: "true"
       when: docker_installed.failed
 
-- name: "Deploy Cloudflared Docker Compose"
+- name: "Deploy Cloudflared"
   hosts: "all"
   become: true
   any_errors_fatal: true
@@ -148,26 +148,28 @@
           CF_TUNNEL_TOKEN={{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN | default('') }}
       when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
 
-    - name: "Initialize Terraform"
+    - name: "Check if Docker network exists"
       command: |
-        sudo terraform init
-      args:
-        chdir: "{{ CLOUDFLARED_DIR }}/terraform"
+        docker network inspect mkhouse-vpc-net
+      register: "network_check"
+      ignore_errors: true
 
-    - name: "Destroy Terraform"
+    - name: "Create Docker network if it does not exist"
       command: |
-        sudo terraform destroy -auto-approve
-      args:
-        chdir: "{{ CLOUDFLARED_DIR }}/terraform"
+        docker network create --driver bridge mkhouse-vpc-net
+      when: "network_check.failed"
 
-    - name: "Plan Terraform"
+    - name: "Pull Docker Compose services"
       command: |
-        sudo terraform plan
+        docker compose -f {{ CLOUDFLARED_DIR }}/docker/docker-compose.yml pull
       args:
-        chdir: "{{ CLOUDFLARED_DIR }}/terraform"
+        chdir: "{{ CLOUDFLARED_DIR }}"
 
-    - name: "Apply Terraform"
+    - name: "Start Docker Compose services"
       command: |
-        sudo terraform apply -auto-approve
+        docker compose -f {{ CLOUDFLARED_DIR }}/docker/docker-compose.yml up -d --force-recreate --remove-orphans --build
       args:
-        chdir: "{{ CLOUDFLARED_DIR }}/terraform"
+        chdir: "{{ CLOUDFLARED_DIR }}"
+
+    - name: "Prune unused Docker images"
+      command: "docker image prune --force"
