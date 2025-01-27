@@ -4,7 +4,7 @@
   become: true
   any_errors_fatal: true
   vars:
-    CLOUDFLARED_DIR: "/usr/local/cloudflared"
+    CLOUDFLARED_PROJECT: "{{ CLOUDFLARED_PROJECT }}"
 
   tasks:
     - name: "Create a timestamp variable"
@@ -13,7 +13,7 @@
 
     - name: "Create backup directory if it doesn't exist"
       file:
-        path: "{{ CLOUDFLARED_DIR }}_backup"
+        path: "{{ CLOUDFLARED_PROJECT }}_backup"
         state: "directory"
         owner: "root"
         group: "root"
@@ -21,8 +21,8 @@
 
     - name: "Create a zip backup of the Cloudflared project"
       archive:
-        path: "{{ CLOUDFLARED_DIR }}"
-        dest: "{{ CLOUDFLARED_DIR }}_backup/cloudflared_backup_{{ timestamp }}.zip"
+        path: "{{ CLOUDFLARED_PROJECT }}"
+        dest: "{{ CLOUDFLARED_PROJECT }}_backup/cloudflared_backup_{{ timestamp }}.zip"
         format: "zip"
 
 - name: "Clean and publish Cloudflared project to remote nodes"
@@ -30,12 +30,12 @@
   become: true
   any_errors_fatal: true
   vars:
-    CLOUDFLARED_DIR: "/usr/local/cloudflared"
+    CLOUDFLARED_PROJECT: "{{ CLOUDFLARED_PROJECT }}"
 
   tasks:
     - name: "Ensure destination directory exists"
       file:
-        path: "{{ CLOUDFLARED_DIR }}"
+        path: "{{ CLOUDFLARED_PROJECT }}"
         state: "directory"
         owner: "root"
         group: "root"
@@ -43,13 +43,13 @@
 
     - name: "Clean the destination directory"
       command: |
-        rm -rf {{ CLOUDFLARED_DIR }}/* {{ CLOUDFLARED_DIR }}/.[!.]* {{ CLOUDFLARED_DIR }}/..?*
+        rm -rf {{ CLOUDFLARED_PROJECT }}/* {{ CLOUDFLARED_PROJECT }}/.[!.]* {{ CLOUDFLARED_PROJECT }}/..?*
       ignore_errors: true
 
     - name: "Copy Cloudflared project to remote nodes"
       synchronize:
-        src: "{{ CLOUDFLARED_DIR }}"
-        dest: "{{ CLOUDFLARED_DIR }}"
+        src: "{{ CLOUDFLARED_PROJECT }}"
+        dest: "{{ CLOUDFLARED_PROJECT }}"
         delete: true
         recursive: true
         rsync_opts:
@@ -57,7 +57,7 @@
 
     - name: "Set permissions on Cloudflared project files"
       file:
-        path: "{{ CLOUDFLARED_DIR }}"
+        path: "{{ CLOUDFLARED_PROJECT }}"
         state: "directory"
         recurse: true
         owner: "root"
@@ -131,7 +131,7 @@
   become: true
   any_errors_fatal: true
   vars:
-    CLOUDFLARED_DIR: "/usr/local/cloudflared"
+    CLOUDFLARED_PROJECT: "{{ CLOUDFLARED_PROJECT }}"
 
   tasks:
     - name: "Verify CF_TUNNEL_TOKEN is defined for current host"
@@ -143,7 +143,7 @@
 
     - name: "Generate .env file with token"
       copy:
-        dest: "{{ CLOUDFLARED_DIR }}/.env"
+        dest: "{{ CLOUDFLARED_PROJECT }}/.env"
         content: |
           CF_TUNNEL_TOKEN={{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN | default('') }}
       when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
@@ -161,15 +161,15 @@
 
     - name: "Pull Docker Compose services"
       command: |
-        docker compose -f {{ CLOUDFLARED_DIR }}/docker/docker-compose.yml pull
+        docker compose -f {{ CLOUDFLARED_PROJECT }}/docker/docker-compose.yml pull
       args:
-        chdir: "{{ CLOUDFLARED_DIR }}"
+        chdir: "{{ CLOUDFLARED_PROJECT }}"
 
     - name: "Start Docker Compose services"
       command: |
-        docker compose -f {{ CLOUDFLARED_DIR }}/docker/docker-compose.yml up -d --force-recreate --remove-orphans --build
+        docker compose -f {{ CLOUDFLARED_PROJECT }}/docker/docker-compose.yml up -d --force-recreate --remove-orphans --build
       args:
-        chdir: "{{ CLOUDFLARED_DIR }}"
+        chdir: "{{ CLOUDFLARED_PROJECT }}"
 
     - name: "Prune unused Docker images"
       command: "docker image prune --force"
