@@ -171,11 +171,6 @@
         fail_msg: "Variable CF_TUNNEL_TOKEN is not defined for host {{ inventory_hostname }}"
         success_msg: "Variable CF_TUNNEL_TOKEN is defined for host {{ inventory_hostname }}"
 
-    - name: "Debug CF_TUNNEL_TOKEN value"
-      debug:
-        msg: "CF_TUNNEL_TOKEN for host {{ inventory_hostname }} is {{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN }}"
-      when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
-
     - name: "Remove existing .env file if it exists"
       file:
         path: "{{ CLOUDFLARED_PROJECT }}/.env"
