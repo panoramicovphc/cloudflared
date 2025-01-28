@@ -171,6 +171,12 @@
         fail_msg: "Variable CF_TUNNEL_TOKEN is not defined for host {{ inventory_hostname }}"
         success_msg: "Variable CF_TUNNEL_TOKEN is defined for host {{ inventory_hostname }}"
 
+    - name: "Remove existing .env file if it exists"
+      file:
+        path: "{{ CLOUDFLARED_PROJECT }}/docker/.env"
+        state: absent
+      when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
+
     - name: "Generate .env file with token"
       copy:
         dest: "{{ CLOUDFLARED_PROJECT }}/docker/.env"
