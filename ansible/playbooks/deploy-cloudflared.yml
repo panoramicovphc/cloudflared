@@ -54,11 +54,12 @@
         rm -rf {{ CLOUDFLARED_PROJECT }}/* {{ CLOUDFLARED_PROJECT }}/.[!.]* {{ CLOUDFLARED_PROJECT }}/..?*
       ignore_errors: true
 
-    - name: "Debug source directory structure"
-      command: "tree {{ playbook_dir }}"
+    - name: "Debug source directory content"
+      command: |
+        ls {{ playbook_dir }}/../..
       register: tree_output
 
-    - name: "Show directory structure"
+    - name: "Show directory content"
       debug:
         var: tree_output.stdout
 
