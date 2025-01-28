@@ -55,7 +55,7 @@
       ignore_errors: true
 
     - name: "Debug source directory structure"
-      command: "tree {{ playbook_dir }}/../.."
+      command: "tree {{ playbook_dir }}"
       register: tree_output
 
     - name: "Show directory structure"
@@ -64,11 +64,11 @@
 
     - name: "Debug source directory"
       debug:
-        msg: "Source directory: {{ playbook_dir }}/../../"
+        msg: "Source directory: {{ playbook_dir }}"
 
     - name: "Copy Cloudflared project to remote nodes"
       synchronize:
-        src: "{{ playbook_dir }}/../../"
+        src: "{{ playbook_dir }}"
         dest: "{{ CLOUDFLARED_PROJECT }}"
         delete: true
         recursive: true
