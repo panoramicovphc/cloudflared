@@ -54,19 +54,21 @@
         rm -rf {{ CLOUDFLARED_PROJECT }}/* {{ CLOUDFLARED_PROJECT }}/.[!.]* {{ CLOUDFLARED_PROJECT }}/..?*
       ignore_errors: true
 
-    - name: Run commands
-      run: |
-        pwd
-        ls -la
-      register: debug_output
+    - name: "Display current directory path"
+      command: "pwd"
+      register: current_dir
 
-    - name: "Show directory content"
+    - name: "Show current directory path"
       debug:
-        var: debug_output.stdout
+        var: current_dir.stdout
 
-    - name: "Debug source directory"
+    - name: "Display current directory contents"
+      command: "ls -la {{ playbook_dir }}"
+      register: dir_contents
+
+    - name: "Show current directory contents"
       debug:
-        msg: "Source directory: {{ playbook_dir }}"
+        var: dir_contents.stdout
 
     - name: "Copy Cloudflared project to remote nodes"
       synchronize:
