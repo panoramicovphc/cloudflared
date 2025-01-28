@@ -56,7 +56,7 @@
 
     - name: "Copy Cloudflared project to remote nodes"
       synchronize:
-        src: "{{ ANSIBLE_PROJECT }}/_dropfolder/cloudflared"
+        src: "{{ ANSIBLE_PROJECT }}/_dropfolder/cloudflared/"
         dest: "{{ CLOUDFLARED_PROJECT }}"
         delete: true
         recursive: true
@@ -178,13 +178,13 @@
 
     - name: "Remove existing .env file if it exists"
       file:
-        path: "{{ CLOUDFLARED_PROJECT }}/docker/.env"
+        path: "{{ CLOUDFLARED_PROJECT }}/.env"
         state: absent
       when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
 
     - name: "Generate .env file with token"
       copy:
-        dest: "{{ CLOUDFLARED_PROJECT }}/docker/.env"
+        dest: "{{ CLOUDFLARED_PROJECT }}/.env"
         content: |
           CF_TUNNEL_TOKEN={{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN | default('') }}
       when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
