@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: "Checkout repository"
         uses: "actions/checkout@v2"
-      - name: "Public cloudflared Docker Compose"
+      - name: "Publish cloudflared Docker Compose"
         run: |
           sudo rm -rf ${CLOUDFLARED_PROJECT}/*
           sudo mkdir -p ${CLOUDFLARED_PROJECT}
