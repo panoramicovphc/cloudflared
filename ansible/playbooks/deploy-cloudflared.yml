@@ -64,11 +64,11 @@
 
     - name: "Debug source directory"
       debug:
-        msg: "Source directory: {{ playbook_dir }}/../../docker"
+        msg: "Source directory: {{ playbook_dir }}/../../"
 
     - name: "Copy Cloudflared project to remote nodes"
       synchronize:
-        src: "{{ playbook_dir }}/../../docker"
+        src: "{{ playbook_dir }}/../../"
         dest: "{{ CLOUDFLARED_PROJECT }}"
         delete: true
         recursive: true
@@ -185,7 +185,7 @@
 
     - name: "Generate .env file with token"
       copy:
-        dest: "{{ CLOUDFLARED_PROJECT }}/.env"
+        dest: "{{ CLOUDFLARED_PROJECT }}/docker/.env"
         content: |
           CF_TUNNEL_TOKEN={{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN | default('') }}
       when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
@@ -205,13 +205,13 @@
       command: |
         docker compose pull
       args:
-        chdir: "{{ CLOUDFLARED_PROJECT }}"
+        chdir: "{{ CLOUDFLARED_PROJECT }}/docker"
 
     - name: "Start Docker Compose services"
       command: |
         docker compose up -d --force-recreate --remove-orphans --build
       args:
-        chdir: "{{ CLOUDFLARED_PROJECT }}"
+        chdir: "{{ CLOUDFLARED_PROJECT }}/docker"
 
     - name: "Prune unused Docker images"
       command: "docker image prune --force"
