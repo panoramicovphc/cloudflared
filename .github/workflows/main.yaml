@@ -23,6 +23,6 @@ jobs:
           sudo rm -rf ${ANSIBLE_PROJECT}/_dropfolder/cloudflared/*
           sudo mkdir -p ${ANSIBLE_PROJECT}/_dropfolder/cloudflared
           sudo chmod 0755 ${ANSIBLE_PROJECT}/_dropfolder/cloudflared
-          sudo cp -r ./docker ${ANSIBLE_PROJECT}/_dropfolder/cloudflared/
+          sudo cp -r ./docker/ ${ANSIBLE_PROJECT}/_dropfolder/cloudflared/
       - name: "Run Ansible Playbook"
         run: ansible-playbook ./ansible/playbooks/deploy-cloudflared.yml -i ${ANSIBLE_PROJECT}/inventory/hosts.ini -e ANSIBLE_PROJECT=${ANSIBLE_PROJECT} -e CLOUDFLARED_PROJECT=${CLOUDFLARED_PROJECT}
