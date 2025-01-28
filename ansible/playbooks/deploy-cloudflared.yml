@@ -54,25 +54,9 @@
         rm -rf {{ CLOUDFLARED_PROJECT }}/* {{ CLOUDFLARED_PROJECT }}/.[!.]* {{ CLOUDFLARED_PROJECT }}/..?*
       ignore_errors: true
 
-    - name: "Display current directory path"
-      command: "pwd"
-      register: "current_dir"
-
-    - name: "Show current directory path"
-      debug:
-        var: current_dir.stdout
-
-    - name: "Display current directory contents"
-      command: "ls -la {{ CLOUDFLARED_PROJECT }}"
-      register: dir_contents
-
-    - name: "Show current directory contents"
-      debug:
-        var: dir_contents.stdout
-
     - name: "Copy Cloudflared project to remote nodes"
       synchronize:
-        src: "{{ playbook_dir }}"
+        src: "{{ ANSIBLE_PROJECT }}/_dropfolder/cloudflared"
         dest: "{{ CLOUDFLARED_PROJECT }}"
         delete: true
         recursive: true
