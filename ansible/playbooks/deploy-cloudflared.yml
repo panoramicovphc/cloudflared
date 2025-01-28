@@ -10,12 +10,13 @@
     - name: "Check if project directory exists"
       stat:
         path: "{{ CLOUDFLARED_PROJECT }}"
-      register: project_dir
+      register: "project_dir"
 
     - name: "Create a timestamp variable"
       set_fact:
         timestamp: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
-      when: project_dir.stat.exists
+      when: |
+        project_dir.stat.exists
 
     - name: "Create backup directory if it doesn't exist"
       file:
@@ -24,14 +25,16 @@
         owner: "root"
         group: "root"
         mode: "0755"
-      when: project_dir.stat.exists
+      when: |
+        project_dir.stat.exists
 
     - name: "Create a zip backup of the Cloudflared project"
       archive:
         path: "{{ CLOUDFLARED_PROJECT }}"
         dest: "{{ CLOUDFLARED_PROJECT }}_backup/cloudflared_backup_{{ timestamp }}.zip"
         format: "zip"
-      when: project_dir.stat.exists
+      when: |
+        project_dir.stat.exists
 
 - name: "Clean and publish Cloudflared project to remote nodes"
   hosts: "all"
@@ -79,13 +82,14 @@
   tasks:
     - name: "Check if Docker is already installed"
       command: "docker --version"
-      register: docker_installed
+      register: "docker_installed"
       ignore_errors: true
 
     - name: "Update package list (Debian/Ubuntu)"
       apt:
         update_cache: true
-      when: ansible_os_family == "Debian" and docker_installed.failed
+      when: |
+        ansible_os_family == "Debian" and docker_installed.failed
 
     - name: "Install required packages (Debian/Ubuntu)"
       apt:
@@ -95,66 +99,77 @@
           - "curl"
           - "software-properties-common"
         state: "present"
-      when: ansible_os_family == "Debian" and docker_installed.failed
+      when: |
+        ansible_os_family == "Debian" and docker_installed.failed
 
     - name: "Add Docker's official GPG key (Debian/Ubuntu)"
       apt_key:
         url: "https://download.docker.com/linux/{{ 'ubuntu' if ansible_distribution == 'Ubuntu' else 'debian' }}/gpg"
         state: "present"
-      when: ansible_os_family == "Debian" and docker_installed.failed
+      when: |
+        ansible_os_family == "Debian" and docker_installed.failed
 
     - name: "Add Docker repository (Debian/Ubuntu)"
       apt_repository:
         repo: "deb [arch=amd64] https://download.docker.com/linux/{{ 'ubuntu' if ansible_distribution == 'Ubuntu' else 'debian' }} $(lsb_release -cs) stable"
         state: "present"
-      when: ansible_os_family == "Debian" and docker_installed.failed
+      when: |
+        ansible_os_family == "Debian" and docker_installed.failed
 
     - name: "Update package list after adding Docker repository (Debian/Ubuntu)"
       apt:
         update_cache: true
-      when: ansible_os_family == "Debian" and docker_installed.failed
+      when: |
+        ansible_os_family == "Debian" and docker_installed.failed
 
     - name: "Install Docker (Debian/Ubuntu)"
       apt:
         name: "docker-ce"
         state: "present"
-      when: ansible_os_family == "Debian" and docker_installed.failed
+      when: |
+        ansible_os_family == "Debian" and docker_installed.failed
 
     - name: "Update package list (Fedora)"
       dnf:
         update_cache: true
-      when: ansible_os_family == "RedHat" and docker_installed.failed
+      when: |
+        ansible_os_family == "RedHat" and docker_installed.failed
 
     - name: "Install required packages (Fedora)"
       dnf:
         name:
           - "dnf-plugins-core"
         state: "present"
-      when: ansible_os_family == "RedHat" and docker_installed.failed
+      when: |
+        ansible_os_family == "RedHat" and docker_installed.failed
 
     - name: "Add Docker repository (Fedora)"
       command: "dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo"
-      when: ansible_os_family == "RedHat" and docker_installed.failed
+      when: |
+        ansible_os_family == "RedHat" and docker_installed.failed
 
     - name: "Install Docker (Fedora)"
       dnf:
         name: "docker-ce"
         state: "present"
-      when: ansible_os_family == "RedHat" and docker_installed.failed
+      when: |
+        ansible_os_family == "RedHat" and docker_installed.failed
 
     - name: "Ensure Docker service is running and enabled"
       service:
         name: "docker"
         state: "started"
         enabled: "true"
-      when: docker_installed.failed
+      when: |
+        docker_installed.failed
 
     - name: "Add current user to docker group"
       user:
         name: "{{ ansible_user }}"
         groups: "docker"
         append: "true"
-      when: docker_installed.failed
+      when: |
+        docker_installed.failed
 
 - name: "Deploy Cloudflared"
   hosts: "all"
@@ -174,15 +189,17 @@
     - name: "Remove existing .env file if it exists"
       file:
         path: "{{ CLOUDFLARED_PROJECT }}/.env"
-        state: absent
-      when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
+        state: "absent"
+      when: |
+        hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined
 
     - name: "Generate .env file with token"
       copy:
         dest: "{{ CLOUDFLARED_PROJECT }}/.env"
         content: |
           CF_TUNNEL_TOKEN={{ hostvars[inventory_hostname].CF_TUNNEL_TOKEN | default('') }}
-      when: "hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined"
+      when: |
+        hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined
 
     - name: "Check if Docker network exists"
       command: |
@@ -193,7 +210,8 @@
     - name: "Create Docker network if it does not exist"
       command: |
         docker network create --driver bridge mkhouse-vpc-net
-      when: "network_check.failed"
+      when: |
+        network_check.failed
 
     - name: "Pull Docker Compose services"
       command: |
@@ -208,4 +226,5 @@
         chdir: "{{ CLOUDFLARED_PROJECT }}"
 
     - name: "Prune unused Docker images"
-      command: "docker image prune --force"
+      command: |
+        docker image prune --force
