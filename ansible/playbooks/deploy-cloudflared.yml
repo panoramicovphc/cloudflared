@@ -7,9 +7,15 @@
     CLOUDFLARED_PROJECT: "{{ CLOUDFLARED_PROJECT }}"
 
   tasks:
+    - name: "Check if project directory exists"
+      stat:
+        path: "{{ CLOUDFLARED_PROJECT }}"
+      register: project_dir
+
     - name: "Create a timestamp variable"
       set_fact:
         timestamp: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+      when: project_dir.stat.exists
 
     - name: "Create backup directory if it doesn't exist"
       file:
@@ -18,12 +24,14 @@
         owner: "root"
         group: "root"
         mode: "0755"
+      when: project_dir.stat.exists
 
     - name: "Create a zip backup of the Cloudflared project"
       archive:
         path: "{{ CLOUDFLARED_PROJECT }}"
         dest: "{{ CLOUDFLARED_PROJECT }}_backup/cloudflared_backup_{{ timestamp }}.zip"
         format: "zip"
+      when: project_dir.stat.exists
 
 - name: "Clean and publish Cloudflared project to remote nodes"
   hosts: "all"
@@ -48,7 +56,7 @@
 
     - name: "Copy Cloudflared project to remote nodes"
       synchronize:
-        src: "."
+        src: "{{ playbook_dir }}/../../docker"
         dest: "{{ CLOUDFLARED_PROJECT }}"
         delete: true
         recursive: true
@@ -183,13 +191,13 @@
 
     - name: "Pull Docker Compose services"
       command: |
-        docker compose -f {{ CLOUDFLARED_PROJECT }}/docker/docker-compose.yml pull
+        docker compose -f {{ CLOUDFLARED_PROJECT }}/docker-compose.yml pull
       args:
         chdir: "{{ CLOUDFLARED_PROJECT }}"
 
     - name: "Start Docker Compose services"
       command: |
-        docker compose -f {{ CLOUDFLARED_PROJECT }}/docker/docker-compose.yml up -d --force-recreate --remove-orphans --build
+        docker compose -f {{ CLOUDFLARED_PROJECT }}/docker-compose.yml up -d --force-recreate --remove-orphans --build
       args:
         chdir: "{{ CLOUDFLARED_PROJECT }}"
 
