@@ -56,14 +56,14 @@
 
     - name: "Display current directory path"
       command: "pwd"
-      register: current_dir
+      register: "current_dir"
 
     - name: "Show current directory path"
       debug:
         var: current_dir.stdout
 
     - name: "Display current directory contents"
-      command: "ls -la {{ playbook_dir }}"
+      command: "ls -la {{ CLOUDFLARED_PROJECT }}"
       register: dir_contents
 
     - name: "Show current directory contents"
