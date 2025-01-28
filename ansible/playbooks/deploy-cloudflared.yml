@@ -54,6 +54,18 @@
         rm -rf {{ CLOUDFLARED_PROJECT }}/* {{ CLOUDFLARED_PROJECT }}/.[!.]* {{ CLOUDFLARED_PROJECT }}/..?*
       ignore_errors: true
 
+    - name: "Debug source directory structure"
+      command: "tree {{ playbook_dir }}/../.."
+      register: tree_output
+
+    - name: "Show directory structure"
+      debug:
+        var: tree_output.stdout
+
+    - name: "Debug source directory"
+      debug:
+        msg: "Source directory: {{ playbook_dir }}/../../docker"
+
     - name: "Copy Cloudflared project to remote nodes"
       synchronize:
         src: "{{ playbook_dir }}/../../docker"
@@ -191,13 +203,13 @@
 
     - name: "Pull Docker Compose services"
       command: |
-        docker compose -f {{ CLOUDFLARED_PROJECT }}/docker-compose.yml pull
+        docker compose pull
       args:
         chdir: "{{ CLOUDFLARED_PROJECT }}"
 
     - name: "Start Docker Compose services"
       command: |
-        docker compose -f {{ CLOUDFLARED_PROJECT }}/docker-compose.yml up -d --force-recreate --remove-orphans --build
+        docker compose up -d --force-recreate --remove-orphans --build
       args:
         chdir: "{{ CLOUDFLARED_PROJECT }}"
 
