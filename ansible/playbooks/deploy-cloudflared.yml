@@ -54,8 +54,8 @@
         rm -rf {{ CLOUDFLARED_PROJECT }}/* {{ CLOUDFLARED_PROJECT }}/.[!.]* {{ CLOUDFLARED_PROJECT }}/..?*
       ignore_errors: true
 
-    - name: "Debug"
-      command: |
+    - name: Run commands
+      run: |
         pwd
         ls -la
       register: debug_output
