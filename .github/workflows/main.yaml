@@ -29,6 +29,7 @@ jobs:
           sudo cp -r ./docker/* ${ANSIBLE_PROJECT}/_dropfolder/cloudflared/
       - name: "Run Ansible Playbook"
         run: |
+          cd ${ANSIBLE_PROJECT}
           ansible-playbook ./ansible/playbooks/deploy-cloudflared.yml \
             -i ${ANSIBLE_PROJECT}/inventory/hosts.ini \
             -e ANSIBLE_PROJECT=${ANSIBLE_PROJECT} \
