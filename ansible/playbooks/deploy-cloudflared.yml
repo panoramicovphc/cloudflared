@@ -201,17 +201,10 @@
       when: |
         hostvars[inventory_hostname].CF_TUNNEL_TOKEN is defined
 
-    - name: "Check if Docker network exists"
-      command: |
-        docker network inspect mkhouse-vpc-net
-      register: "network_check"
-      ignore_errors: true
-
-    - name: "Create Docker network if it does not exist"
-      command: |
-        docker network create --driver bridge mkhouse-vpc-net
-      when: |
-        network_check.failed
+    - name: "Ensure Docker networks exist"
+      mkh_ensure_docker_network:
+        networks:
+          - name: "panoramicovphc-vpc-net"
 
     - name: "Pull Docker Compose services"
       command: |
