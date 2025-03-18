@@ -4,8 +4,8 @@ services:
 
   mkhouse-cloudflared:
     image: "cloudflare/cloudflared:latest"
-    container_name: "mkhouse-cloudflared"
-    hostname: "mkhouse-cloudflared"
+    container_name: "panoramicovphc-cloudflared"
+    hostname: "panoramicovphc-cloudflared"
     command: "tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}"
     restart: "unless-stopped"
     dns:
