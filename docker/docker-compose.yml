@@ -19,8 +19,8 @@ services:
       - "/etc/localtime:/etc/localtime:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
-      mkhouse-vpc-net:
+      panoramicovphc-vpc-net:
 
 networks:
-  mkhouse-vpc-net:
+  panoramicovphc-vpc-net:
     external: true
