@@ -1,0 +1,83 @@
+name: "pipeline"
+run-name: "${{ github.event_name }} by ${{ github.actor }} #${{ github.run_number }}.${{ github.run_attempt }}"
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Reason for running the workflow"
+        required: true
+        default: "Manual trigger"
+
+env:
+  ANSIBLE_PROJECT_PATH: "${{ vars.ANSIBLE_PROJECT_PATH }}"
+  CURRENT_PROJECT_PATH: "${{ vars.CURRENT_PROJECT_PATH }}"
+
+jobs:
+  publish-artifact:
+    name: "build-and-publish-artifact"
+    runs-on: [ "ubuntu-24.04" ]
+    steps:
+      - name: "Checkout repository"
+        uses: "actions/checkout@v2"
+      - name: "Resolve artifact name"
+        run: |
+          echo "artifact_name=artifact-v${{ github.run_number }}.${{ github.run_attempt }}.tar.gz" >> $GITHUB_ENV
+      - name: "Resolve artifact path"
+        run: |
+          echo "artifact_path=${RUNNER_TEMP}/${{ env.artifact_name }}" >> $GITHUB_ENV
+      - name: "Build artifact"
+        run: |
+          tar --exclude=".git" --exclude=".github" -czf ${{ env.artifact_path }} .
+      - name: "Verify artifact"
+        run: |
+          if [ ! -f ${{ env.artifact_path }} ]; then
+            echo "Artifact was not created successfully."
+            exit 1
+          fi
+      - name: "Upload artifact"
+        uses: "actions/upload-artifact@v4"
+        with:
+          name: ${{ env.artifact_name }}
+          if-no-files-found: error
+          path: ${{ env.artifact_path }}
+
+  deploy-dev:
+    name: "deploy-dev"
+    environment: "dev"
+    runs-on: [ "panoramicovphc", "self-hosted", "development" ]
+    needs: [ "publish-artifact" ]
+    env:
+      ENVIRONMENT_STAGE_NAME: "dev"
+    steps:
+      - name: "Resolve artifact name"
+        run: |
+          echo "artifact_name=artifact-v${{ github.run_number }}.${{ github.run_attempt }}.tar.gz" >> $GITHUB_ENV
+      - name: "Resolve dropfolder path"
+        run: |
+          echo "dropfolder_path=${ANSIBLE_PROJECT_PATH}/_dropfolder/cloudflared" >> $GITHUB_ENV
+      - name: "Resolve artifact path"
+        run: |
+          echo "artifact_path=${GITHUB_WORKSPACE}/${{ env.artifact_name }}" >> $GITHUB_ENV
+      - name: "Download artifact"
+        uses: "actions/download-artifact@v4"
+        with:
+          name: "${{ env.artifact_name }}"
+      - name: "Extract artifact"
+        run: |
+          sudo rm -rf ${{ env.dropfolder_path }}/*
+          sudo mkdir -p ${{ env.dropfolder_path }}
+          sudo chmod 0755 ${{ env.dropfolder_path }}
+          sudo cp -r ./docker/* ${{ env.dropfolder_path }}/
+          sudo tar -xzf "${{ env.artifact_path }}" -C "${{ env.dropfolder_path }}"
+      - name: "Run Ansible Playbook"
+        run: |
+          cd ${ANSIBLE_PROJECT_PATH}
+          ansible-playbook ${GITHUB_WORKSPACE}/ansible/playbooks/deploy-cloudflared.yml \
+            -i ${ANSIBLE_PROJECT_PATH}/inventory/hosts.ini \
+            -e ANSIBLE_PROJECT_PATH=${ANSIBLE_PROJECT_PATH} \
+            -e CURRENT_PROJECT_PATH=${CURRENT_PROJECT_PATH}

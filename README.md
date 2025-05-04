@@ -35,8 +35,8 @@ docker/
    ```
 
 2. **Configure GitHub Secrets**:
-   - `ANSIBLE_PROJECT`: Path to the Ansible project on the target nodes.
-   - `CLOUDFLARED_PROJECT`: Path to the Cloudflared project on the target nodes.
+   - `ANSIBLE_PROJECT_PATH`: Path to the Ansible project on the target nodes.
+   - `CURRENT_PROJECT_PATH`: Path to the Cloudflared project on the target nodes.
    - `CF_TUNNEL_TOKEN`: Cloudflare Tunnel token for the Docker container.
 
 3. **Update Inventory File**:
