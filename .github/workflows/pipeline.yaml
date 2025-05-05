@@ -72,8 +72,10 @@ jobs:
           sudo rm -rf ${{ env.dropfolder_path }}/*
           sudo mkdir -p ${{ env.dropfolder_path }}
           sudo chmod 0755 ${{ env.dropfolder_path }}
-          sudo cp -r ./docker/* ${{ env.dropfolder_path }}/
           sudo tar -xzf "${{ env.artifact_path }}" -C "${{ env.dropfolder_path }}"
+      - name: "List dropfolder contents"
+        run: |
+          ls -la ${{ env.dropfolder_path }}
       - name: "Run Ansible Playbook"
         run: |
           cd ${ANSIBLE_PROJECT_PATH}
