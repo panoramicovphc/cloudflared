@@ -1,5 +1,5 @@
 ---
-- name: "Publish Cloudflared project to remote nodes"
+- name: "Publish project to remote nodes"
   hosts: "all"
   become: true
   any_errors_fatal: true
@@ -28,15 +28,15 @@
       when: |
         project_dir.stat.exists
 
-    - name: "Create a zip backup of the Cloudflared project"
+    - name: "Create a zip backup of the project"
       archive:
         path: "{{ CURRENT_PROJECT_PATH }}"
-        dest: "{{ CURRENT_PROJECT_PATH }}_backup/cloudflared_backup_{{ timestamp }}.zip"
+        dest: "{{ CURRENT_PROJECT_PATH }}_backup/{{ timestamp }}.zip"
         format: "zip"
       when: |
         project_dir.stat.exists
 
-- name: "Clean and publish Cloudflared project to remote nodes"
+- name: "Clean and publish project to remote nodes"
   hosts: "all"
   become: true
   any_errors_fatal: true
@@ -57,16 +57,16 @@
         rm -rf {{ CURRENT_PROJECT_PATH }}/* {{ CURRENT_PROJECT_PATH }}/.[!.]* {{ CURRENT_PROJECT_PATH }}/..?*
       ignore_errors: true
 
-    - name: "Copy Cloudflared project to remote nodes"
+    - name: "Copy project to remote nodes"
       synchronize:
-        src: "{{ ANSIBLE_PROJECT_PATH }}/_dropfolder/cloudflared/"
+        src: "{{ DROPFOLDER_PATH }}/"
         dest: "{{ CURRENT_PROJECT_PATH }}"
         delete: true
         recursive: true
         rsync_opts:
           - "--chmod=D0755,F0644"
 
-    - name: "Set permissions on Cloudflared project files"
+    - name: "Set permissions on project files"
       file:
         path: "{{ CURRENT_PROJECT_PATH }}"
         state: "directory"
@@ -171,7 +171,7 @@
       when: |
         docker_installed.failed
 
-- name: "Deploy Cloudflared"
+- name: "Deploy project"
   hosts: "all"
   become: true
   any_errors_fatal: true

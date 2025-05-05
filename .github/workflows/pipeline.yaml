@@ -80,4 +80,5 @@ jobs:
           ansible-playbook ${GITHUB_WORKSPACE}/ansible/playbooks/deploy-cloudflared.yml \
             -i ${ANSIBLE_PROJECT_PATH}/inventory/hosts.ini \
             -e ANSIBLE_PROJECT_PATH=${ANSIBLE_PROJECT_PATH} \
-            -e CURRENT_PROJECT_PATH=${CURRENT_PROJECT_PATH}
+            -e CURRENT_PROJECT_PATH=${CURRENT_PROJECT_PATH} \
+            -e DROPFOLDER_PATH=${dropfolder_path}
