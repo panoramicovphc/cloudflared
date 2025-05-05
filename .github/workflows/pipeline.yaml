@@ -76,7 +76,7 @@ jobs:
       - name: "Run Ansible Playbook"
         run: |
           cd ${ANSIBLE_PROJECT_PATH}
-          ansible-playbook ${dropfolder_path}/ansible/playbooks/deploy-docker.yml \
+          ansible-playbook ./playbooks/deploy-docker.yml \
             -i "${ANSIBLE_PROJECT_PATH}/inventory/hosts.ini" \
             -e "ANSIBLE_PROJECT_PATH=${ANSIBLE_PROJECT_PATH}" \
             -e "CURRENT_PROJECT_PATH=${CURRENT_PROJECT_PATH}" \
