@@ -60,9 +60,6 @@ jobs:
       - name: "Resolve dropfolder path"
         run: |
           echo "dropfolder_path=${ANSIBLE_PROJECT_PATH}/_dropfolder/cloudflared" >> $GITHUB_ENV
-      - name: "Echo dropfolder_path variable"
-        run: |
-          echo $dropfolder_path
       - name: "Resolve artifact path"
         run: |
           echo "artifact_path=${GITHUB_WORKSPACE}/${{ env.artifact_name }}" >> $GITHUB_ENV
@@ -79,6 +76,9 @@ jobs:
       - name: "List dropfolder contents"
         run: |
           ls -la ${{ env.dropfolder_path }}
+      - name: "Tree dropfolder contents"
+        run: |
+          tree ${{ env.dropfolder_path }}
       - name: "Run Ansible Playbook"
         run: |
           cd ${ANSIBLE_PROJECT_PATH}
