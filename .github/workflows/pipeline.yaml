@@ -82,7 +82,7 @@ jobs:
       - name: "Run Ansible Playbook"
         run: |
           cd ${ANSIBLE_PROJECT_PATH}
-          ansible-playbook ${GITHUB_WORKSPACE}/ansible/playbooks/deploy-cloudflared.yml \
+          ansible-playbook ${dropfolder_path}/ansible/playbooks/deploy-cloudflared.yml \
             -i ${ANSIBLE_PROJECT_PATH}/inventory/hosts.ini \
             -e ANSIBLE_PROJECT_PATH=${ANSIBLE_PROJECT_PATH} \
             -e CURRENT_PROJECT_PATH=${CURRENT_PROJECT_PATH} \
