@@ -30,10 +30,10 @@ on:
     outputs:
       DROPFOLDER_PATH:
         description: "The path to the dropfolder where the artifact will be extracted"
-        value: "${{ steps.resolve-dropfolder-path.outputs.dropfolder_path }}"
+        value: "${{ jobs.deploy.outputs.dropfolder_path }}"
       ARTIFACT_PATH:
         description: "The path to the downloaded artifact"
-        value: "${{ steps.resolve-artifact-path.outputs.artifact_path }}"
+        value: "${{ jobs.deploy.outputs.artifact_path }}"
 
 jobs:
   deploy:
