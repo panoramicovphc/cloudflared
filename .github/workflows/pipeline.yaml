@@ -13,10 +13,6 @@ on:
         required: true
         default: "Manual trigger"
 
-env:
-  ANSIBLE_PROJECT_PATH: "${{ vars.ANSIBLE_PROJECT_PATH }}"
-  CURRENT_PROJECT_PATH: "${{ vars.CURRENT_PROJECT_PATH }}"
-
 jobs:
 
   build:
@@ -28,8 +24,8 @@ jobs:
     needs: [ build ]
     with:
       ENVIRONMENT_STAGE_NAME: "dev"
-      ANSIBLE_PROJECT_PATH: "${{ env.ANSIBLE_PROJECT_PATH }}"
-      CURRENT_PROJECT_PATH: "${{ env.CURRENT_PROJECT_PATH }}"
+      ANSIBLE_PROJECT_PATH: "${{ vars.ANSIBLE_PROJECT_PATH }}"
+      CURRENT_PROJECT_PATH: "${{ vars.CURRENT_PROJECT_PATH }}"
       PROJECT_NAME: "cloudflared"
       ARTIFACT_NAME: "${{ needs.build.outputs.ARTIFACT_NAME }}"
       RUNNER_LABELS: [ "panoramicovphc", "self-hosted", "development" ]
