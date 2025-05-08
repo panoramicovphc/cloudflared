@@ -18,39 +18,16 @@ env:
   CURRENT_PROJECT_PATH: "${{ vars.CURRENT_PROJECT_PATH }}"
 
 jobs:
-  publish-artifact:
-    name: "build-and-publish-artifact"
-    runs-on: [ "ubuntu-24.04" ]
-    steps:
-      - name: "Checkout repository"
-        uses: "actions/checkout@v2"
-      - name: "Resolve artifact name"
-        run: |
-          echo "artifact_name=artifact-v${{ github.run_number }}.${{ github.run_attempt }}.tar.gz" >> $GITHUB_ENV
-      - name: "Resolve artifact path"
-        run: |
-          echo "artifact_path=${RUNNER_TEMP}/${{ env.artifact_name }}" >> $GITHUB_ENV
-      - name: "Build artifact"
-        run: |
-          tar --exclude=".git" --exclude=".github" -czf ${{ env.artifact_path }} .
-      - name: "Verify artifact"
-        run: |
-          if [ ! -f ${{ env.artifact_path }} ]; then
-            echo "Artifact was not created successfully."
-            exit 1
-          fi
-      - name: "Upload artifact"
-        uses: "actions/upload-artifact@v4"
-        with:
-          name: ${{ env.artifact_name }}
-          if-no-files-found: error
-          path: ${{ env.artifact_path }}
+
+  build:
+    name: "Build"
+    uses: "panoramicovphc/reusable-workflows/.github/workflows/.reusable-build.yml@v1"
 
   deploy-dev:
     name: "deploy-dev"
     environment: "dev"
     runs-on: [ "panoramicovphc", "self-hosted", "development" ]
-    needs: [ "publish-artifact" ]
+    needs: [ "build" ]
     env:
       ENVIRONMENT_STAGE_NAME: "dev"
     steps:
@@ -62,11 +39,11 @@ jobs:
           echo "dropfolder_path=${ANSIBLE_PROJECT_PATH}/_dropfolder/cloudflared" >> $GITHUB_ENV
       - name: "Resolve artifact path"
         run: |
-          echo "artifact_path=${GITHUB_WORKSPACE}/${{ env.artifact_name }}" >> $GITHUB_ENV
+          echo "artifact_path=${GITHUB_WORKSPACE}/${{ needs.build.outputs.ARTIFACT_NAME }}" >> $GITHUB_ENV
       - name: "Download artifact"
         uses: "actions/download-artifact@v4"
         with:
-          name: "${{ env.artifact_name }}"
+          name: "${{ needs.build.outputs.ARTIFACT_NAME }}"
       - name: "Extract artifact"
         run: |
           sudo rm -rf ${{ env.dropfolder_path }}/*
