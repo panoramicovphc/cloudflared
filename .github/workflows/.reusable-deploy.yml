@@ -4,50 +4,61 @@ on:
   workflow_call:
     inputs:
       ENVIRONMENT_STAGE_NAME:
+        description: "The name of the environment to deploy to (dev, qa, prod, etc.)"
         required: true
-        type: string
+        type: "string"
+      ENVIRONMENT_RUNNER_LABEL:
+        description: "The label of the runner to use for the deployment"
+        required: true
+        type: "string"
       ANSIBLE_PROJECT_PATH:
+        description: "The path to the Ansible project directory"
         required: true
         type: string
       CURRENT_PROJECT_PATH:
+        description: "The path to the current project directory"
         required: true
         type: string
       PROJECT_NAME:
+        description: "The name of the project being deployed"
         required: true
         type: string
       ARTIFACT_NAME:
+        description: "The name of the artifact to be downloaded and deployed"
         required: true
         type: string
-      RUNNER_LABELS:
-        required: true
-        type: string[]
+    outputs:
+      DROPFOLDER_PATH:
+        description: "The path to the dropfolder where the artifact will be extracted"
+        value: "${{ steps.resolve-dropfolder-path.outputs.dropfolder_path }}"
+      ARTIFACT_PATH:
+        description: "The path to the downloaded artifact"
+        value: "${{ steps.resolve-artifact-path.outputs.artifact_path }}"
 
 jobs:
   deploy:
     name: "Deploy ${{ inputs.ENVIRONMENT_STAGE_NAME }}"
     environment: ${{ inputs.ENVIRONMENT_STAGE_NAME }}
-    runs-on: ${{ inputs.RUNNER_LABELS }}
+    runs-on: [ "panoramicovphc", "${{ inputs.ENVIRONMENT_RUNNER_LABEL }}" ]
     steps:
       - name: "Resolve dropfolder path"
+        id: resolve-dropfolder-path
         run: |
-          echo "dropfolder_path=${{ inputs.ANSIBLE_PROJECT_PATH }}/_dropfolder/${{ inputs.PROJECT_NAME }}" >> $GITHUB_ENV
-
+          echo "dropfolder_path=${{ inputs.ANSIBLE_PROJECT_PATH }}/_dropfolder/${{ inputs.PROJECT_NAME }}" >> $GITHUB_OUTPUT
       - name: "Resolve artifact path"
+        id: resolve-artifact-path
         run: |
-          echo "artifact_path=${GITHUB_WORKSPACE}/${{ inputs.ARTIFACT_NAME }}" >> $GITHUB_ENV
-
+          echo "artifact_path=${GITHUB_WORKSPACE}/${{ inputs.ARTIFACT_NAME }}" >> $GITHUB_OUTPUT
       - name: "Download artifact"
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.ARTIFACT_NAME }}
-
       - name: "Extract artifact"
         run: |
-          sudo rm -rf ${{ env.dropfolder_path }}/*
-          sudo mkdir -p ${{ env.dropfolder_path }}
-          sudo chmod 0755 ${{ env.dropfolder_path }}
-          sudo tar -xzf "${{ env.artifact_path }}" -C "${{ env.dropfolder_path }}"
-
+          sudo rm -rf ${{ steps.resolve-dropfolder-path.outputs.dropfolder_path }}/*
+          sudo mkdir -p ${{ steps.resolve-dropfolder-path.outputs.dropfolder_path }}
+          sudo chmod 0755 ${{ steps.resolve-dropfolder-path.outputs.dropfolder_path }}
+          sudo tar -xzf "${{ steps.resolve-artifact-path.outputs.artifact_path }}" -C "${{ steps.resolve-dropfolder-path.outputs.dropfolder_path }}"
       - name: "Run Ansible Playbook"
         run: |
           cd ${{ inputs.ANSIBLE_PROJECT_PATH }}
@@ -55,4 +66,4 @@ jobs:
             -i "${{ inputs.ANSIBLE_PROJECT_PATH }}/inventory/hosts.ini" \
             -e "ANSIBLE_PROJECT_PATH=${{ inputs.ANSIBLE_PROJECT_PATH }}" \
             -e "CURRENT_PROJECT_PATH=${{ inputs.CURRENT_PROJECT_PATH }}" \
-            -e "DROPFOLDER_PATH=${{ env.dropfolder_path }}"
+            -e "DROPFOLDER_PATH=${{ steps.resolve-dropfolder-path.outputs.dropfolder_path }}"

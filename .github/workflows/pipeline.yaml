@@ -24,8 +24,8 @@ jobs:
     needs: [ build ]
     with:
       ENVIRONMENT_STAGE_NAME: "dev"
+      ENVIRONMENT_STAGE_LABEL: "development"
       ANSIBLE_PROJECT_PATH: "${{ vars.ANSIBLE_PROJECT_PATH }}"
       CURRENT_PROJECT_PATH: "${{ vars.CURRENT_PROJECT_PATH }}"
       PROJECT_NAME: "cloudflared"
       ARTIFACT_NAME: "${{ needs.build.outputs.ARTIFACT_NAME }}"
-      RUNNER_LABELS: [ "panoramicovphc", "self-hosted", "development" ]
