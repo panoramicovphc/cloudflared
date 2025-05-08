@@ -24,7 +24,7 @@ jobs:
     needs: [ build ]
     with:
       ENVIRONMENT_STAGE_NAME: "dev"
-      ENVIRONMENT_STAGE_LABEL: "development"
+      ENVIRONMENT_RUNNER_LABEL: "development"
       PROJECT_NAME: "cloudflared"
       ANSIBLE_PROJECT_PATH: "${{ vars.ANSIBLE_PROJECT_PATH }}"
       CURRENT_PROJECT_PATH: "${{ vars.CURRENT_PROJECT_PATH }}"
